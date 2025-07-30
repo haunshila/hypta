@@ -1,0 +1,22 @@
+name: Docker Build
+
+on:
+  push:
+    paths:
+      - 'applications/**/Dockerfile'
+      - '.github/workflows/docker.yml'
+  pull_request:
+    paths:
+      - 'applications/**/Dockerfile'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, credential-verifier, policy-decision-point, credential-issuance, idp-bridge]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Image
+        run: |
+          docker build -t hypta-${{ matrix.service }}:latest applications/${{ matrix.service }}

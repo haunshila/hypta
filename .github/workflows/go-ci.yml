@@ -1,0 +1,30 @@
+name: Go CI
+
+on:
+  push:
+    paths:
+      - 'applications/**'
+      - '.github/workflows/go-ci.yml'
+  pull_request:
+    paths:
+      - 'applications/**'
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Build & Test
+        run: |
+          for d in applications/*; do
+            if [ -f "$d/go.mod" ]; then
+              cd $d
+              go build ./...
+              go test ./...
+              cd -
+            fi
+          done
