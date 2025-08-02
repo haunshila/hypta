@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  api-gateway:
+    image: api-gateway:latest
+    build:
+      context: .
+      dockerfile: applications/api-gateway/Dockerfile
+    ports:
+      - "8080:8080"
+  admin-ui:
+    image: admin-ui:latest
+    build:
+      context: .
+      dockerfile: applications/admin-ui/Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_API_URL=http://api-gateway:8080
+    depends_on:
+      - api-gateway
+  digital-wallet-app:
+    image: digital-wallet-app:latest
+    build:
+      context: .
+      dockerfile: applications/digital-wallet-app/Dockerfile
+    ports:
+      - "81:80"
+    environment:
+      - REACT_APP_API_URL=http://api-gateway:8080
+    depends_on:
+      - api-gateway
