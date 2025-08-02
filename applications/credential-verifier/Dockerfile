@@ -1,21 +1,16 @@
-# Stage 1: Build
-FROM golang:1.23.1 AS builder
-WORKDIR /app
-# Copy go.mod and go.sum to download dependencies
-COPY go.mod go.sum ./
-RUN go mod download
-# Copy only Go-related files, excluding frontend
-COPY applications/credential-issuance/ applications/credential-issuance/
-COPY applications/util/ applications/util/
-# Build the credential-issuance binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/credential-issuance ./applications/credential-issuance
+# Build stage
+FROM golang:1.23-alpine AS builder
+WORKDIR /build
+COPY ./applications/credential-verifier ./applications/credential-verifier 
+COPY ./applications/util ./applications/util 
 
-# Stage 2: Runtime
+WORKDIR /build/applications/credential-verifier
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /main ./cmd
+
+
 FROM alpine:latest
 WORKDIR /app
-# Copy the built binary from the builder stage
-COPY --from=builder /app/credential-issuance .
-# Expose the port the API Gateway listens on
+COPY --from=builder /main .
 EXPOSE 8080
-# Run the credential-issuance binary
-CMD ["./credential-issuance"]
+CMD ["./main"]
